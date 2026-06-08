@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruta360 — Diagnóstico de Inglés</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3d;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --text: #f0f0f8;
+    --muted: #7a7a9a;
+    --gold: #ffd166;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  #progress-bar-container {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 100;
+  }
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  /* ─── TOP NAV ─── */
+  .topnav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 99;
+  }
+  .logo {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .step-counter {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── WRAPPER ─── */
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 100px 24px 60px;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; animation: fadeUp 0.4s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── WELCOME ─── */
+  .welcome-hero {
+    text-align: center;
+    padding: 40px 0 20px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(108,99,255,0.15);
+    border: 1px solid rgba(108,99,255,0.4);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .welcome-hero h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+  .welcome-hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .welcome-hero p {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 480px;
+    margin: 0 auto 36px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stat-chip strong { color: var(--text); display: block; font-size: 17px; font-family: 'Poppins', sans-serif; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    margin-bottom: 32px;
+  }
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .section-tag .dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .section-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .section-header p { color: var(--muted); font-size: 14px; }
+
+  /* ─── QUESTION CARD ─── */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .q-card:hover { border-color: rgba(108,99,255,0.3); }
+  .q-number {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .q-text strong { color: var(--gold); }
+
+  /* ─── OPTIONS ─── */
+  .options { display: grid; gap: 8px; }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    transition: all 0.18s;
+    width: 100%;
+  }
+  .option-btn:hover { border-color: var(--accent); background: rgba(108,99,255,0.08); }
+  .option-btn.selected { border-color: var(--accent); background: rgba(108,99,255,0.15); }
+  .option-btn.correct  { border-color: var(--accent3); background: rgba(67,233,123,0.1); }
+  .option-btn.wrong    { border-color: var(--accent2); background: rgba(255,107,107,0.1); }
+  .option-letter {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ─── READING PASSAGE ─── */
+  .reading-passage {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #c8c8e0;
+  }
+  .reading-passage h4 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  /* ─── LISTENING BUBBLE ─── */
+  .chat-bubble {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .bubble.left {
+    align-self: flex-start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px 16px 16px 16px;
+  }
+  .bubble.right {
+    align-self: flex-end;
+    background: rgba(108,99,255,0.2);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 16px 4px 16px 16px;
+  }
+  .bubble-name {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  /* ─── OPEN TEXT ─── */
+  .open-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  .open-textarea:focus { outline: none; border-color: var(--accent); }
+  .open-textarea::placeholder { color: var(--muted); }
+  .rubric-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .rubric-hint span { display: flex; align-items: center; gap: 4px; }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9b93ff);
+    color: white;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--text); }
+  .btn-lg { padding: 16px 40px; font-size: 16px; }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  /* ─── PROFILE FORM ─── */
+  .profile-form { display: grid; gap: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--accent); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* ─── TOGGLE OPTIONS ─── */
+  .toggle-options { display: grid; gap: 8px; }
+  .toggle-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .toggle-option:hover, .toggle-option.selected {
+    border-color: var(--accent);
+    background: rgba(108,99,255,0.1);
+  }
+  .toggle-option .icon { font-size: 20px; }
+  .toggle-option .label { font-size: 14px; font-weight: 500; }
+  .toggle-option .desc { font-size: 12px; color: var(--muted); }
+  .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 480px) { .toggle-grid { grid-template-columns: 1fr; } }
+
+  /* ─── RESULT ─── */
+  .result-hero {
+    text-align: center;
+    padding: 20px 0 36px;
+  }
+  .level-badge {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 100px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .level-A1 { background: rgba(108,99,255,0.15); border: 2px solid var(--accent); color: var(--accent); }
+  .level-A2 { background: rgba(67,233,123,0.1); border: 2px solid var(--accent3); color: var(--accent3); }
+  .level-B1 { background: rgba(255,209,102,0.1); border: 2px solid var(--gold); color: var(--gold); }
+  .level-B2 { background: rgba(255,107,107,0.1); border: 2px solid var(--accent2); color: var(--accent2); }
+  .level-C1 { background: rgba(108,99,255,0.15); border: 2px solid #c084fc; color: #c084fc; }
+
+  .result-hero h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .result-hero p { color: var(--muted); font-size: 15px; max-width: 480px; margin: 0 auto; }
+
+  .score-ring-container {
+    display: flex;
+    justify-content: center;
+    margin: 28px 0;
+  }
+  .score-ring {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: conic-gradient(var(--accent) 0%, var(--accent2) var(--pct), var(--surface2) var(--pct));
+    position: relative;
+  }
+  .score-ring::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+  .score-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .score-inner .score-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .score-inner .score-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+  @media(max-width: 520px) { .result-grid { grid-template-columns: 1fr; } }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .result-card h4 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .result-card h4.green { color: var(--accent3); }
+  .result-card h4.red { color: var(--accent2); }
+  .result-card ul { list-style: none; display: grid; gap: 8px; }
+  .result-card ul li {
+    font-size: 13px;
+    color: #c0c0dc;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.4;
+  }
+  .result-card ul li::before { flex-shrink: 0; margin-top: 2px; }
+  .result-card ul.pros li::before { content: '✦'; color: var(--accent3); font-size: 10px; }
+  .result-card ul.cons li::before { content: '◈'; color: var(--accent2); font-size: 10px; }
+
+  .ruta-plan {
+    background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(255,107,107,0.08));
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .ruta-plan h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .plan-steps { display: grid; gap: 10px; }
+  .plan-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .plan-step .step-num {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .plan-step .step-content { font-size: 13px; color: #c8c8e0; line-height: 1.5; }
+  .plan-step .step-content strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  .profile-summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .profile-item { font-size: 13px; color: var(--muted); }
+  .profile-item strong { display: block; color: var(--text); font-size: 14px; margin-top: 2px; }
+
+  .section-scores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+  }
+  @media(max-width: 480px) { .section-scores { grid-template-columns: 1fr 1fr; } }
+  .sec-score {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .sec-score .sec-name { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .sec-score .sec-val { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 800; }
+  .sec-score .sec-max { font-size: 11px; color: var(--muted); }
+  .sec-score .sec-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .sec-score .sec-bar-fill { height: 100%; background: var(--accent); transition: width 1s ease; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* ─── LOADING ─── */
+  .loading-screen {
+    text-align: center;
+    padding: 80px 20px;
+  }
+  .loading-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; background: #9b93ff; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; background: var(--accent2); }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+<nav class="topnav">
+  <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="data:image/jpeg;base64,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" style="height:36px;width:36px;border-radius:8px;object-fit:cover;" alt="Ruta360"><span style="font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.3px;color:#f0f0f8;">Ruta<span style="color:var(--accent)">360</span></span></div>
+  <div class="step-counter" id="step-counter">Bienvenida</div>
+</nav>
+
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 0: WELCOME
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-hero">
+      <div class="badge">✦ Diagnóstico de Inglés</div>
+      <h1>Descubre tu nivel<br>de inglés <em>real</em></h1>
+      <p>Una evaluación inteligente diseñada para darte un mapa claro de dónde estás y hacia dónde ir.</p>
+      <div class="stats-row">
+        <div class="stat-chip"><strong>~20 min</strong>Duración</div>
+        <div class="stat-chip"><strong>6</strong>Secciones</div>
+        <div class="stat-chip"><strong>5</strong>Niveles CEFR</div>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="goTo('screen-profile')">
+        Comenzar diagnóstico →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 1: PROFILE
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-profile">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Paso 1 de 7</div>
+      <h2>Cuéntanos un poco sobre ti</h2>
+      <p>Esta información nos ayuda a personalizar tu resultado.</p>
+    </div>
+    <div class="profile-form">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Tu nombre</label>
+          <input class="form-input" type="text" id="user-name" placeholder="Ej: María García">
+        </div>
+        <div class="form-group">
+          <label>Edad</label>
+          <input class="form-input" type="number" id="user-age" placeholder="Ej: 24" min="10" max="80">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>¿Cuánto tiempo puedes dedicar al inglés cada día?</label>
+        <div class="toggle-grid" id="time-options">
+          <div class="toggle-option" data-val="15min" onclick="selectToggle(this,'time-options')">
+            <span class="icon">⏱️</span>
+            <div><div class="label">15 minutos</div><div class="desc">Aprendizaje express</div></div>
+          </div>
+          <div class="toggle-option" data-val="30min" onclick="selectToggle(this,'time-options')">
+            <span class="icon">📚</span>
+            <div><div class="label">30 minutos</div><div class="desc">Ritmo constante</div></div>
+          </div>
+          <div class="toggle-option" data-val="1hora" onclick="selectToggle(this,'time-options')">
+            <span class="icon">🎯</span>
+            <div><div class="label">1 hora</div><div class="desc">Progreso sólido</div></div>
+          </div>
+          <div class="toggle-option" data-val="2horas" onclick="selectToggle(this,'time-options')">
+            <span class="icon">🚀</span>
+            <div><div class="label">2 horas o más</div><div class="desc">Inmersión total</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>¿Cuál es tu objetivo principal?</label>
+        <div class="toggle-options" id="goal-options">
+          <div class="toggle-option" data-val="series" onclick="selectToggle(this,'goal-options')">🎬 Entender películas y series</div>
+          <div class="toggle-option" data-val="conversar" onclick="selectToggle(this,'goal-options')">💬 Conversar con fluidez</div>
+          <div class="toggle-option" data-val="viajar" onclick="selectToggle(this,'goal-options')">✈️ Viajar al extranjero</div>
+          <div class="toggle-option" data-val="trabajo" onclick="selectToggle(this,'goal-options')">💼 Trabajo en empresa internacional</div>
+          <div class="toggle-option" data-val="entrevistas" onclick="selectToggle(this,'goal-options')">🤝 Entrevistas laborales en inglés</div>
+          <div class="toggle-option" data-val="negocios" onclick="selectToggle(this,'goal-options')">📈 Negocios y networking</div>
+          <div class="toggle-option" data-val="certificacion" onclick="selectToggle(this,'goal-options')">🏅 Obtener una certificación (TOEFL / IELTS)</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTest()">Iniciar evaluación →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 2: VOCABULARY
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-vocab">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 1 · Vocabulary</div>
+      <h2>Words & Meaning</h2>
+      <p>Selecciona la opción correcta. Sin presión — solo queremos conocer tu vocabulario actual.</p>
+    </div>
+    <div id="vocab-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="nextSection('screen-grammar', 'vocab-questions', vocabData)">Siguiente sección →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 3: GRAMMAR
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-grammar">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 2 · Grammar</div>
+      <h2>Language Structure</h2>
+      <p>Preguntas sobre tiempos verbales, artículos, preposiciones y más.</p>
+    </div>
+    <div id="grammar-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="nextSection('screen-reading', 'grammar-questions', grammarData)">Siguiente sección →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 4: READING
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-reading">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 3 · Reading</div>
+      <h2>Reading Comprehension</h2>
+      <p>Lee cada texto y responde las preguntas. La dificultad aumenta progresivamente.</p>
+    </div>
+    <div id="reading-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="nextSection('screen-listening', 'reading-content', readingData)">Siguiente sección →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 5: LISTENING SIMULATION
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-listening">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 4 · Listening Simulation</div>
+      <h2>Conversation Understanding</h2>
+      <p>Lee estas conversaciones como si las estuvieras escuchando, luego responde las preguntas.</p>
+    </div>
+    <div id="listening-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="nextSection('screen-writing', 'listening-content', listeningData)">Siguiente sección →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 6: WRITING
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-writing">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 5 · Writing</div>
+      <h2>Express Yourself in Writing</h2>
+      <p>Responde en inglés con la mayor naturalidad posible. No hay respuestas perfectas — muéstranos cómo piensas.</p>
+    </div>
+    <div id="writing-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goToSpeaking()">Siguiente sección →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 7: SPEAKING SIMULATION
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-speaking">
+    <div class="section-header">
+      <div class="section-tag"><span class="dot"></span> Sección 6 · Speaking Simulation</div>
+      <h2>Express Yourself Out Loud</h2>
+      <p>Responde estas preguntas como si estuvieras en una conversación real. Escribe tu respuesta en inglés.</p>
+    </div>
+    <div id="speaking-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calculateResults()">Ver mis resultados ✦</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 8: LOADING
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-screen">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <p style="margin-top:20px;color:var(--muted);font-size:14px;">Analizando tus respuestas…</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SCREEN 9: RESULTS
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-results">
+    <div id="results-content"></div>
+  </div>
+
+</div><!-- /#app -->
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA: VOCABULARY (10 questions, difficulty progressive)
+// ═══════════════════════════════════════════════
+const vocabData = [
+  { id:"V1", level:"A1", section:"Vocabulary", question:"What do you call the person who gives birth to you?", options:["Brother","Mother","Neighbor","Friend"], correct:1, explanation:"'Mother' (madre) is the person who gave birth to you." },
+  { id:"V2", level:"A1", section:"Vocabulary", question:"Which word means a place where you sleep and rest at night?", options:["Kitchen","Bathroom","Bedroom","Office"], correct:2, explanation:"'Bedroom' (habitación) is the room where you sleep." },
+  { id:"V3", level:"A1", section:"Vocabulary", question:"You want to travel to another country. You go to the ___ to take a plane.", options:["Hospital","Airport","School","Market"], correct:1, explanation:"'Airport' (aeropuerto) is where planes depart and arrive." },
+  { id:"V4", level:"A2", section:"Vocabulary", question:"Choose the word that means 'to move from one place to another on foot'.", options:["Sleep","Walk","Eat","Drive"], correct:1, explanation:"'Walk' (caminar) means to move on foot." },
+  { id:"V5", level:"A2", section:"Vocabulary", question:"My boss asked me to prepare a ___ for the Monday meeting.", options:["Recipe","Prescription","Report","Novel"], correct:2, explanation:"'Report' (informe) is a formal document prepared for work." },
+  { id:"V6", level:"B1", section:"Vocabulary", question:"The company decided to ___ the project because of budget problems.", options:["launch","abandon","extend","promote"], correct:1, explanation:"'Abandon' means to leave or give up something. 'Launch' means to start." },
+  { id:"V7", level:"B1", section:"Vocabulary", question:"She has a very ___ personality — everyone loves being around her.", options:["chaotic","obscure","vibrant","narrow"], correct:2, explanation:"'Vibrant' describes a lively and energetic personality." },
+  { id:"V8", level:"B2", section:"Vocabulary", question:"The new regulation will ___ small businesses from competing in the market.", options:["facilitate","deter","persuade","enhance"], correct:1, explanation:"'Deter' means to discourage or prevent someone from doing something." },
+  { id:"V9", level:"B2", section:"Vocabulary", question:"His ___ remarks during the meeting offended several colleagues.", options:["candid","subtle","condescending","eloquent"], correct:2, explanation:"'Condescending' means showing a sense of superiority toward others." },
+  { id:"V10", level:"C1", section:"Vocabulary", question:"The historian's analysis was remarkably ___, drawing connections across centuries of political thought.", options:["superficial","incisive","redundant","ambiguous"], correct:1, explanation:"'Incisive' means intelligently analytical and clear-thinking." }
+];
+
+// ═══════════════════════════════════════════════
+// DATA: GRAMMAR (10 questions)
+// ═══════════════════════════════════════════════
+const grammarData = [
+  { id:"G1", level:"A1", section:"Grammar", question:"She ___ to work every day by bus.", options:["go","goes","going","went"], correct:1, explanation:"Third person singular in Present Simple uses 'goes'. (She/He/It + verb+s)" },
+  { id:"G2", level:"A1", section:"Grammar", question:"There is ___ apple on the table.", options:["a","an","the","—"], correct:1, explanation:"We use 'an' before words starting with a vowel sound, like 'apple'." },
+  { id:"G3", level:"A2", section:"Grammar", question:"Right now, they ___ a football game in the park.", options:["play","played","are playing","will play"], correct:2, explanation:"'Right now' signals Present Continuous: to be + verb-ing." },
+  { id:"G4", level:"A2", section:"Grammar", question:"I ___ to Paris last summer. It was beautiful.", options:["go","am going","went","will go"], correct:2, explanation:"'Last summer' signals the Past Simple tense." },
+  { id:"G5", level:"A2", section:"Grammar", question:"My keys are ___ the table — I always leave them there.", options:["in","at","on","of"], correct:2, explanation:"We use 'on' for surfaces: on the table, on the floor." },
+  { id:"G6", level:"B1", section:"Grammar", question:"By the time she arrived, he ___ already ___ dinner.", options:["had / eaten","has / eaten","was / eating","will / eat"], correct:0, explanation:"Past Perfect (had + past participle) describes an action completed before another past action." },
+  { id:"G7", level:"B1", section:"Grammar", question:"This city is ___ than the one where I grew up.", options:["more crowded","most crowded","crowdeder","more crowdeder"], correct:0, explanation:"Comparative form for multi-syllable adjectives: more + adjective." },
+  { id:"G8", level:"B2", section:"Grammar", question:"She suggested ___ the meeting until next week.", options:["to postpone","postpone","postponing","postponed"], correct:2, explanation:"'Suggest' is followed by a gerund (verb + -ing)." },
+  { id:"G9", level:"B2", section:"Grammar", question:"If the economy ___ stronger, unemployment ___ have fallen.", options:["had been / would","was / would","had been / would have","were / will"], correct:2, explanation:"Third conditional: if + Past Perfect, would have + past participle." },
+  { id:"G10", level:"C1", section:"Grammar", question:"Not only ___ he arrive late, but he also forgot the presentation materials.", options:["did","had","was","has"], correct:0, explanation:"With negative inversions like 'Not only', the auxiliary comes before the subject (inverted word order)." }
+];
+
+// ═══════════════════════════════════════════════
+// DATA: READING (3 passages × 3 questions)
+// ═══════════════════════════════════════════════
+const readingData = [
+  {
+    id:"R1", level:"A1",
+    title:"My Family",
+    passage:"My name is Lucas. I am 10 years old. I live with my family in a small house. My mother's name is Ana and she is a teacher. My father's name is Pedro and he works in an office. I have one sister. Her name is Sofía and she is 7 years old. We have a dog called Max. Every Sunday we go to the park together.",
+    questions:[
+      { id:"R1Q1", question:"What does Lucas's mother do?", options:["She is a doctor","She is a teacher","She works in an office","She is at home"], correct:1 },
+      { id:"R1Q2", question:"How old is Lucas's sister?", options:["10 years old","8 years old","7 years old","5 years old"], correct:2 },
+      { id:"R1Q3", question:"What is the name of their dog?", options:["Pedro","Lucas","Max","Sofía"], correct:2 }
+    ]
+  },
+  {
+    id:"R2", level:"B1",
+    title:"Remote Work: A New Reality",
+    passage:"Over the past few years, remote work has transformed the way millions of people do their jobs. What started as a temporary response to a global health crisis has become a long-term arrangement for many companies and employees. Advocates of remote work point to increased productivity, lower commuting costs, and greater flexibility. However, critics argue that working from home can lead to social isolation, blurred boundaries between professional and personal life, and difficulties in team collaboration. Despite these challenges, surveys consistently show that a majority of employees prefer hybrid models — a combination of remote and in-office work — over a fully traditional five-day office schedule.",
+    questions:[
+      { id:"R2Q1", question:"According to the passage, how did remote work begin for many companies?", options:["As a permanent company policy","As a response to a global health crisis","Due to economic savings","Because of technological advances"], correct:1 },
+      { id:"R2Q2", question:"What do most surveys reveal about employees' preferences?", options:["They want to work fully remotely","They prefer a hybrid model","They prefer the traditional office","They want shorter workdays"], correct:1 },
+      { id:"R2Q3", question:"Which of the following is mentioned as a disadvantage of remote work?", options:["Higher productivity","Lower costs","Social isolation","Greater flexibility"], correct:2 }
+    ]
+  },
+  {
+    id:"R3", level:"C1",
+    title:"The Paradox of Choice",
+    passage:"In contemporary consumer societies, individuals are confronted with an unprecedented abundance of options — from what to eat for breakfast to which career path to pursue. Psychologist Barry Schwartz, in his seminal work, argued that while some degree of choice is undeniably beneficial, an excess of it can paradoxically diminish well-being. This phenomenon, termed the 'paradox of choice', manifests as decision fatigue, persistent anxiety about making the 'wrong' choice, and a tendency toward post-decision regret, regardless of outcome quality. Schwartz contends that maximizers — those who seek the single best option — suffer disproportionately compared to satisficers, who settle for options that are 'good enough'. The implications extend beyond consumer behavior, challenging assumptions embedded in neoliberal economic models that equate freedom of choice with human flourishing.",
+    questions:[
+      { id:"R3Q1", question:"What does the 'paradox of choice' suggest, according to the passage?", options:["More choices always lead to better decisions","Too many options can reduce well-being","Freedom of choice is always beneficial","Consumers are generally satisfied with their decisions"], correct:1 },
+      { id:"R3Q2", question:"According to Schwartz, who tends to suffer more from the paradox of choice?", options:["Satisficers, who settle for adequate options","People with limited access to choices","Maximizers, who seek the absolute best option","Individuals in collectivist societies"], correct:2 },
+      { id:"R3Q3", question:"The passage implies that neoliberal economic models assume which of the following?", options:["Choices should be limited by government regulation","Greater choice inherently promotes human flourishing","Consumers make irrational decisions when given options","Decision fatigue is a myth in modern economies"], correct:1 }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════
+// DATA: LISTENING SIMULATION (5 dialogues × 1 question)
+// ═══════════════════════════════════════════════
+const listeningData = [
+  {
+    id:"L1", level:"A1",
+    title:"At the Coffee Shop",
+    conversation:[
+      { speaker:"Barista", side:"left", text:"Good morning! What can I get for you?" },
+      { speaker:"Customer", side:"right", text:"Hi! Can I have a large coffee, please?" },
+      { speaker:"Barista", side:"left", text:"Sure! Do you want milk with that?" },
+      { speaker:"Customer", side:"right", text:"Yes, please. And also one chocolate muffin." },
+      { speaker:"Barista", side:"left", text:"Great! That'll be $4.50. Have a nice day!" }
+    ],
+    questions:[
+      { id:"L1Q1", question:"What does the customer order?", options:["A small coffee and a croissant","A large coffee and a chocolate muffin","A tea and a muffin","A coffee without milk"], correct:1 }
+    ]
+  },
+  {
+    id:"L2", level:"A2",
+    title:"Making Weekend Plans",
+    conversation:[
+      { speaker:"David", side:"left", text:"Hey Sarah, what are you doing this Saturday?" },
+      { speaker:"Sarah", side:"right", text:"Nothing special! Why?" },
+      { speaker:"David", side:"left", text:"My band is playing at The Blue Note at 9 PM. You should come!" },
+      { speaker:"Sarah", side:"right", text:"Oh, that sounds fun! Is it free to get in?" },
+      { speaker:"David", side:"left", text:"Yes, it's free! But get there early — it gets really crowded." }
+    ],
+    questions:[
+      { id:"L2Q1", question:"What does David advise Sarah to do?", options:["Buy tickets in advance","Arrive early to the venue","Bring friends along","Call the restaurant first"], correct:1 }
+    ]
+  },
+  {
+    id:"L3", level:"B1",
+    title:"Job Interview Preparation",
+    conversation:[
+      { speaker:"Manager (HR)", side:"left", text:"So, tell me — why do you want to work here specifically?" },
+      { speaker:"Applicant", side:"right", text:"I've been following your company for two years. I love your focus on sustainability and innovation. I think my background in project management aligns well with your goals." },
+      { speaker:"Manager (HR)", side:"left", text:"That's good to hear. What would you say is your biggest professional weakness?" },
+      { speaker:"Applicant", side:"right", text:"Honestly, I sometimes take on too many tasks at once. But I've been working on prioritizing more effectively using project management tools." },
+      { speaker:"Manager (HR)", side:"left", text:"I appreciate the honesty. We'll be in touch by end of week." }
+    ],
+    questions:[
+      { id:"L3Q1", question:"How does the applicant respond to the weakness question?", options:["By denying having any weaknesses","By mentioning a weakness and explaining how they're addressing it","By asking the interviewer to skip the question","By describing a strength instead"], correct:1 }
+    ]
+  },
+  {
+    id:"L4", level:"B2",
+    title:"Discussing a Documentary",
+    conversation:[
+      { speaker:"Alex", side:"left", text:"Did you watch that documentary about fast fashion last night?" },
+      { speaker:"Jamie", side:"right", text:"I did! It was eye-opening. I had no idea how much water it takes to produce a single pair of jeans." },
+      { speaker:"Alex", side:"left", text:"Right? And the working conditions in those factories were appalling. I think it really changes how you look at your wardrobe." },
+      { speaker:"Jamie", side:"right", text:"Absolutely. I've decided I'm going to buy second-hand from now on. It's not a perfect solution, but it's a start." },
+      { speaker:"Alex", side:"left", text:"Same here. Though I think the responsibility shouldn't fall only on consumers — brands need to be held accountable too." }
+    ],
+    questions:[
+      { id:"L4Q1", question:"What does Alex believe about the responsibility for fast fashion problems?", options:["Only consumers are responsible","Responsibility should be shared between consumers and brands","Governments should regulate fashion entirely","Documentaries exaggerate the issue"], correct:1 }
+    ]
+  },
+  {
+    id:"L5", level:"C1",
+    title:"Academic Debate: Artificial Intelligence",
+    conversation:[
+      { speaker:"Professor", side:"left", text:"So, what's your position on AI replacing human workers in the creative industries?" },
+      { speaker:"Student", side:"right", text:"I'd argue it's more nuanced than a binary replacement scenario. AI tools currently augment creative processes rather than supplanting them entirely. A graphic designer using Midjourney is still exercising creative judgment — the model is the brush, not the artist." },
+      { speaker:"Professor", side:"left", text:"That's a compelling distinction. But doesn't the accessibility of these tools devalue the expertise accumulated through years of training?" },
+      { speaker:"Student", side:"right", text:"It could devalue certain technical gatekeeping aspects, yes. But the cognitive and conceptual dimensions of creativity — taste, narrative, emotional intelligence — remain fundamentally human competencies." }
+    ],
+    questions:[
+      { id:"L5Q1", question:"What is the student's core argument regarding AI in creative industries?", options:["AI will completely replace human designers soon","AI acts as a tool that enhances rather than replaces human creativity","Accessibility of AI tools has already destroyed the design profession","AI lacks any ability to assist in creative tasks"], correct:1 }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════
+// DATA: WRITING (3 open questions)
+// ═══════════════════════════════════════════════
+const writingData = [
+  { id:"W1", level:"A1-A2", prompt:"Introduce yourself in English. Tell us your name, where you're from, and what you do.", placeholder:"Hi, my name is... I'm from... I work/study...", hint:"Hint: Name • Nationality • Occupation • One personal fact" },
+  { id:"W2", level:"B1-B2", prompt:"Describe your daily routine. What do you usually do from morning to evening?", placeholder:"I usually wake up at... Then I...", hint:"Hint: Time expressions • Present Simple • At least 4-5 sentences" },
+  { id:"W3", level:"B2-C1", prompt:"Describe your goals for learning English. Why is it important to you and what do you hope to achieve?", placeholder:"Learning English is important to me because...", hint:"Hint: Goals • Reasons • Future plans • Express opinions with confidence" }
+];
+
+// ═══════════════════════════════════════════════
+// DATA: SPEAKING SIMULATION (5 prompts)
+// ═══════════════════════════════════════════════
+const speakingData = [
+  { id:"SP1", level:"A1-A2", prompt:"Tell me about yourself. Where are you from and what do you do?", hint:"Who are you? What's your background?" },
+  { id:"SP2", level:"A2-B1", prompt:"What did you do last weekend? Tell me about it in detail.", hint:"Use Past Simple: went, saw, ate, talked..." },
+  { id:"SP3", level:"B1-B2", prompt:"Why do you want to learn English? How will it change your life?", hint:"Express goals, motivations, and future impact" },
+  { id:"SP4", level:"B2-C1", prompt:"Do you think social media has a positive or negative effect on society? Explain your opinion.", hint:"Give an opinion + reasons + acknowledge the other side" },
+  { id:"SP5", level:"C1", prompt:"Describe a challenge you've overcome in your professional or academic life and what you learned from it.", hint:"Narrative arc: situation → challenge → action → lesson learned" }
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let answers = {};
+let writingAnswers = {};
+let speakingAnswers = {};
+let userProfile = {};
+let sectionScores = { vocab: 0, grammar: 0, reading: 0, listening: 0, writing: 0, speaking: 0 };
+
+const SCREENS = ['screen-welcome','screen-profile','screen-vocab','screen-grammar','screen-reading','screen-listening','screen-writing','screen-speaking','screen-loading','screen-results'];
+const SCREEN_LABELS = ['Bienvenida','Tu Perfil','Vocabulario','Gramática','Reading','Listening','Writing','Speaking','Cargando','Resultados'];
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const idx = SCREENS.indexOf(id);
+  document.getElementById('step-counter').textContent = SCREEN_LABELS[idx] || '';
+  updateProgress(idx);
+}
+
+function updateProgress(idx) {
+  const pct = Math.round((idx / (SCREENS.length - 1)) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function selectToggle(el, groupId) {
+  document.querySelectorAll(`#${groupId} .toggle-option`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ═══════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════
+function renderMCQ(data, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  data.forEach((q, qi) => {
+    const letters = ['A','B','C','D'];
+    const opts = q.options.map((o, i) =>
+      `<button class="option-btn" onclick="selectAnswer('${q.id}',${i},this,'${q.id}')" id="opt-${q.id}-${i}">
+        <span class="option-letter">${letters[i]}</span>${o}
+      </button>`
+    ).join('');
+    container.innerHTML += `
+      <div class="q-card">
+        <div class="q-number">Pregunta ${qi+1} · ${q.level}</div>
+        <div class="q-text">${q.question}</div>
+        <div class="options" id="opts-${q.id}">${opts}</div>
+      </div>`;
+  });
+}
+
+function renderReading() {
+  const container = document.getElementById('reading-content');
+  container.innerHTML = '';
+  let qIdx = 1;
+  readingData.forEach(r => {
+    const letters = ['A','B','C','D'];
+    const qs = r.questions.map((q, qi) => {
+      const opts = q.options.map((o, i) =>
+        `<button class="option-btn" onclick="selectAnswer('${q.id}',${i},this,'${q.id}')" id="opt-${q.id}-${i}">
+          <span class="option-letter">${letters[i]}</span>${o}
+        </button>`
+      ).join('');
+      return `<div class="q-card">
+        <div class="q-number">Pregunta ${qIdx++} · ${r.level}</div>
+        <div class="q-text">${q.question}</div>
+        <div class="options" id="opts-${q.id}">${opts}</div>
+      </div>`;
+    }).join('');
+    container.innerHTML += `
+      <div class="reading-passage"><h4>📖 Texto ${r.id.slice(1)} · ${r.level} — ${r.title}</h4>${r.passage}</div>
+      ${qs}
+      <hr class="divider">`;
+  });
+}
+
+function renderListening() {
+  const container = document.getElementById('listening-content');
+  container.innerHTML = '';
+  listeningData.forEach((l, li) => {
+    const bubbles = l.conversation.map(b =>
+      `<div class="bubble ${b.side}"><div class="bubble-name">${b.speaker}</div>${b.text}</div>`
+    ).join('');
+    const letters = ['A','B','C','D'];
+    const qs = l.questions.map(q => {
+      const opts = q.options.map((o, i) =>
+        `<button class="option-btn" onclick="selectAnswer('${q.id}',${i},this,'${q.id}')" id="opt-${q.id}-${i}">
+          <span class="option-letter">${letters[i]}</span>${o}
+        </button>`
+      ).join('');
+      return `<div class="q-card">
+        <div class="q-number">🎧 Conversación ${li+1} · ${l.level}</div>
+        <div class="q-text">${q.question}</div>
+        <div class="options" id="opts-${q.id}">${opts}</div>
+      </div>`;
+    }).join('');
+    container.innerHTML += `
+      <div class="reading-passage">
+        <h4>🎙️ Conversación ${li+1}: ${l.title}</h4>
+        <div class="chat-bubble">${bubbles}</div>
+      </div>
+      ${qs}
+      <hr class="divider">`;
+  });
+}
+
+function renderWriting() {
+  const container = document.getElementById('writing-questions');
+  container.innerHTML = '';
+  writingData.forEach((w, i) => {
+    container.innerHTML += `
+      <div class="q-card">
+        <div class="q-number">Writing ${i+1} · ${w.level}</div>
+        <div class="q-text">${w.prompt}</div>
+        <textarea class="open-textarea" id="writing-${w.id}" placeholder="${w.placeholder}" rows="5"></textarea>
+        <div class="rubric-hint">
+          <span>💡 ${w.hint}</span>
+        </div>
+      </div>`;
+  });
+}
+
+function renderSpeaking() {
+  const container = document.getElementById('speaking-questions');
+  container.innerHTML = '';
+  speakingData.forEach((s, i) => {
+    container.innerHTML += `
+      <div class="q-card">
+        <div class="q-number">Speaking ${i+1} · ${s.level}</div>
+        <div class="q-text">🎤 "${s.prompt}"</div>
+        <textarea class="open-textarea" id="speaking-${s.id}" placeholder="Write your answer here in English..." rows="4"></textarea>
+        <div class="rubric-hint">
+          <span>🧭 ${s.hint}</span>
+        </div>
+      </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ANSWER SELECTION
+// ═══════════════════════════════════════════════
+function selectAnswer(qid, idx, btn, groupId) {
+  document.querySelectorAll(`#opts-${groupId} .option-btn`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[qid] = idx;
+}
+
+// ═══════════════════════════════════════════════
+// SECTION TRANSITION
+// ═══════════════════════════════════════════════
+function nextSection(nextScreen, containerId, data) {
+  goTo(nextScreen);
+  if (nextScreen === 'screen-grammar') renderMCQ(grammarData, 'grammar-questions');
+  if (nextScreen === 'screen-reading') renderReading();
+  if (nextScreen === 'screen-listening') renderListening();
+  if (nextScreen === 'screen-writing') renderWriting();
+}
+
+function goToSpeaking() {
+  // Save writing answers
+  writingData.forEach(w => {
+    writingAnswers[w.id] = document.getElementById('writing-'+w.id).value;
+  });
+  renderSpeaking();
+  goTo('screen-speaking');
+}
+
+function startTest() {
+  userProfile.name = document.getElementById('user-name').value || 'Estudiante';
+  userProfile.age  = document.getElementById('user-age').value;
+  const timeEl  = document.querySelector('#time-options .selected');
+  const goalEl  = document.querySelector('#goal-options .selected');
+  userProfile.time = timeEl ? timeEl.dataset.val : 'No indicado';
+  userProfile.goal = goalEl ? goalEl.textContent.trim() : 'No indicado';
+  renderMCQ(vocabData, 'vocab-questions');
+  goTo('screen-vocab');
+}
+
+// ═══════════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════════
+function scoreSection(data) {
+  let correct = 0;
+  data.forEach(q => {
+    if (answers[q.id] === q.correct) correct++;
+  });
+  return correct;
+}
+
+function scoreReading() {
+  let correct = 0;
+  readingData.forEach(r => r.questions.forEach(q => {
+    if (answers[q.id] === q.correct) correct++;
+  }));
+  return correct;
+}
+
+function scoreListening() {
+  let correct = 0;
+  listeningData.forEach(l => l.questions.forEach(q => {
+    if (answers[q.id] === q.correct) correct++;
+  }));
+  return correct;
+}
+
+function assessOpenText(text) {
+  if (!text || text.trim().length < 10) return 0;
+  const words = text.trim().split(/\s+/).length;
+  const sentences = (text.match(/[.!?]/g) || []).length;
+  const hasCapital = /[A-Z]/.test(text);
+  const score = Math.min(5,
+    (words >= 50 ? 2 : words >= 25 ? 1.5 : words >= 10 ? 1 : 0) +
+    (sentences >= 3 ? 1.5 : sentences >= 2 ? 1 : 0.5) +
+    (hasCapital ? 0.5 : 0) +
+    (words >= 80 ? 1 : 0)
+  );
+  return score;
+}
+
+function calculateResults() {
+  speakingData.forEach(s => {
+    speakingAnswers[s.id] = document.getElementById('speaking-'+s.id).value;
+  });
+
+  goTo('screen-loading');
+
+  setTimeout(() => {
+    // Raw section scores
+    const vScore  = scoreSection(vocabData);     // /10
+    const gScore  = scoreSection(grammarData);   // /10
+    const rScore  = scoreReading();              // /9
+    const lScore  = scoreListening();            // /5
+
+    // Writing: 3 open × max 5 pts each = 15 → normalize to /10
+    const wRaw = writingData.reduce((sum, w) => sum + assessOpenText(writingAnswers[w.id]), 0);
+    const wScore = Math.round((wRaw / 15) * 10);
+
+    // Speaking: 5 open × max 5 pts each = 25 → normalize to /10
+    const spRaw = speakingData.reduce((sum, s) => sum + assessOpenText(speakingAnswers[s.id]), 0);
+    const spScore = Math.round((spRaw / 25) * 10);
+
+    sectionScores = { vocab: vScore, grammar: gScore, reading: rScore, listening: lScore, writing: wScore, speaking: spScore };
+
+    // Weighted total out of 100
+    // vocab 20, grammar 20, reading 15, listening 10, writing 20, speaking 15
+    const total = Math.round(
+      (vScore/10)*20 +
+      (gScore/10)*20 +
+      (rScore/9)*15 +
+      (lScore/5)*10 +
+      wScore*2 +
+      (spScore/10)*15
+    );
+
+    renderResults(total);
+    goTo('screen-results');
+  }, 2200);
+}
+
+// ═══════════════════════════════════════════════
+// RESULT DATA
+// ═══════════════════════════════════════════════
+const levelData = {
+  A1: {
+    label:"Principiante", color:"level-A1", emoji:"🌱",
+    desc:"Estás dando tus primeros pasos. ¡Ese es el comienzo de todo!",
+    strengths:["Reconoces vocabulario cotidiano básico","Puedes identificar palabras familiares en textos simples","Tienes motivación para comenzar"],
+    improvements:["Construir vocabulario de uso diario","Aprender los tiempos verbales básicos (Present Simple)","Comenzar a formar frases completas","Practicar la pronunciación desde el principio"],
+    plan:["Vocabulario esencial: objetos, familia, colores, números","Frases básicas de presentación y saludo","Pronunciación con audio y repetición","Primeros diálogos cotidianos (tienda, transporte, casa)","15-20 min diarios de práctica con flashcards"]
+  },
+  A2: {
+    label:"Básico", color:"level-A2", emoji:"🌿",
+    desc:"Ya tienes una base real. Con práctica constante, el progreso es rápido.",
+    strengths:["Puedes entender frases simples sobre temas cotidianos","Describes situaciones básicas con Present Simple","Reconoces contexto en textos cortos"],
+    improvements:["Expandir vocabulario temático (trabajo, viajes, salud)","Incorporar Past Simple para hablar de experiencias","Practicar conversaciones completas","Mejorar la comprensión auditiva"],
+    plan:["Conversaciones de la vida real (restaurante, viajes, trabajo)","Comprensión auditiva con podcasts lentos en inglés","Gramática: Past Simple + Future (going to)","Descripción de rutinas y experiencias pasadas","Diálogos guiados de 5-7 oraciones"]
+  },
+  B1: {
+    label:"Intermedio", color:"level-B1", emoji:"⚡",
+    desc:"Puedes comunicarte en situaciones cotidianas. Es momento de ganar fluidez.",
+    strengths:["Manejas los tiempos verbales principales","Puedes expresar ideas y opiniones simples","Entiendes el hilo de conversaciones cotidianas"],
+    improvements:["Ganar fluidez en conversación espontánea","Ampliar vocabulario expresivo y de conectores","Practicar con contenido auténtico (noticias, videos)","Dominar el Past Perfect y condicionales"],
+    plan:["Fluidez: hablar sin traducir mentalmente","Podcast en inglés a velocidad normal","Películas con subtítulos en inglés","Escritura: diarios, emails, opiniones","Debates simples sobre temas de interés personal"]
+  },
+  B2: {
+    label:"Intermedio Alto", color:"level-B2", emoji:"🔥",
+    desc:"Tu inglés es sólido. Estás listo para comunicarte con naturalidad en entornos exigentes.",
+    strengths:["Te comunicas con claridad en una variedad de temas","Entiendes el inglés en contextos profesionales","Puedes argumentar y dar opiniones complejas"],
+    improvements:["Expresiones idiomáticas y lenguaje natural","Reducir el acento y mejorar la fluidez oral","Vocabulario académico y profesional avanzado","Dominar el inglés escrito formal"],
+    plan:["Expresiones idiomáticas y phrasal verbs en contexto","Presentaciones orales y simulaciones de reuniones","Inglés de negocios: emails formales, negociación","Lectura de artículos académicos y de noticias","Práctica conversacional con hablantes nativos"]
+  },
+  C1: {
+    label:"Avanzado", color:"level-C1", emoji:"🏆",
+    desc:"Tu dominio del inglés es avanzado. El objetivo es alcanzar la excelencia nativa.",
+    strengths:["Te expresas con precisión y naturalidad","Manejas registro formal e informal con soltura","Comprendes textos y debates complejos sin dificultad"],
+    improvements:["Perfeccionar matices de estilo y registro","Dominar el inglés académico y ejecutivo","Eliminar errores residuales de gramática compleja","Prepararte para certificaciones internacionales (C1/C2)"],
+    plan:["Inglés profesional avanzado: presentaciones de alto nivel","Debates y argumentación sofisticada","Análisis crítico de textos complejos","Preparación para TOEFL iBT / IELTS Academic / Cambridge C1","Networking profesional en inglés"]
+  }
+};
+
+const timeLabels = { "15min":"15 minutos/día","30min":"30 minutos/día","1hora":"1 hora/día","2horas":"2+ horas/día" };
+const goalLabels = { "series":"Películas y series","conversar":"Conversar","viajar":"Viajar","trabajo":"Trabajo","entrevistas":"Entrevistas","negocios":"Negocios","certificacion":"Certificación" };
+
+function getLevel(score) {
+  if (score <= 20) return 'A1';
+  if (score <= 40) return 'A2';
+  if (score <= 60) return 'B1';
+  if (score <= 80) return 'B2';
+  return 'C1';
+}
+
+function renderResults(total) {
+  const level = getLevel(total);
+  const ld = levelData[level];
+  const pct = total + '%';
+  const name = userProfile.name || 'Estudiante';
+
+  const secs = [
+    { name:'Vocabulary', val: sectionScores.vocab, max: 10 },
+    { name:'Grammar',    val: sectionScores.grammar, max: 10 },
+    { name:'Reading',    val: sectionScores.reading, max: 9 },
+    { name:'Listening',  val: sectionScores.listening, max: 5 },
+    { name:'Writing',    val: sectionScores.writing, max: 10 },
+    { name:'Speaking',   val: sectionScores.speaking, max: 10 }
+  ];
+
+  const secScoreHTML = secs.map(s => {
+    const pctSec = Math.round((s.val/s.max)*100);
+    return `<div class="sec-score">
+      <div class="sec-name">${s.name}</div>
+      <div class="sec-val">${s.val}</div>
+      <div class="sec-max">/ ${s.max}</div>
+      <div class="sec-bar"><div class="sec-bar-fill" style="width:${pctSec}%;background:${pctSec>=70?'var(--accent3)':pctSec>=40?'var(--gold)':'var(--accent2)'}"></div></div>
+    </div>`;
+  }).join('');
+
+  const planHTML = ld.plan.map((p,i) =>
+    `<div class="plan-step"><span class="step-num">${i+1}</span><div class="step-content">${p}</div></div>`
+  ).join('');
+
+  const strengthsHTML = ld.strengths.map(s=>`<li>${s}</li>`).join('');
+  const improvHTML     = ld.improvements.map(s=>`<li>${s}</li>`).join('');
+
+  const timeDisplay = timeLabels[userProfile.time] || userProfile.time;
+  const goalDisplay = goalLabels[userProfile.goal] || userProfile.goal;
+
+  document.getElementById('results-content').innerHTML = `
+    <div class="result-hero">
+      <div class="level-badge ${ld.color}">${level} · ${ld.label}</div>
+      <h2>${ld.emoji} ¡Hola, ${name}!</h2>
+      <p>${ld.desc}</p>
+    </div>
+
+    <div class="score-ring-container">
+      <div class="score-ring" style="--pct:${pct}">
+        <div class="score-inner">
+          <div class="score-num">${total}</div>
+          <div class="score-label">/ 100 pts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-scores">${secScoreHTML}</div>
+
+    <div class="result-grid">
+      <div class="result-card">
+        <h4 class="green">✦ Fortalezas</h4>
+        <ul class="pros">${strengthsHTML}</ul>
+      </div>
+      <div class="result-card">
+        <h4 class="red">◈ Áreas de Mejora</h4>
+        <ul class="cons">${improvHTML}</ul>
+      </div>
+    </div>
+
+    <div class="profile-summary">
+      <div class="profile-item">🕐 Disponibilidad<strong>${timeDisplay}</strong></div>
+      <div class="profile-item">🎯 Objetivo<strong>${goalDisplay}</strong></div>
+      <div class="profile-item">📊 Nivel CEFR<strong>${level}</strong></div>
+      <div class="profile-item">🏅 Puntuación<strong>${total}/100</strong></div>
+    </div>
+
+    <div class="ruta-plan">
+      <h3>🗺️ Tu Ruta Personalizada en Ruta360 — Nivel ${level}</h3>
+      <div class="plan-steps">${planHTML}</div>
+    </div>
+
+    <div style="text-align:center;margin-top:36px;">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">¿Listo para comenzar tu ruta de aprendizaje?</p>
+      <button class="btn btn-primary btn-lg" onclick="alert('¡Conecta esta acción con tu CTA de Ruta360!')">
+        🚀 Comenzar mi plan en Ruta360
+      </button>
+      <button class="btn btn-outline" style="margin-left:12px;margin-top:8px;" onclick="goTo('screen-welcome');answers={};writingAnswers={};speakingAnswers={};">
+        Repetir diagnóstico
+      </button>
+    </div>
+
+    <div style="margin-top:40px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--muted);">
+      <strong style="color:var(--text);">📋 Nota sobre Writing y Speaking:</strong> Estas secciones fueron evaluadas automáticamente en base a extensión y estructura. Para una evaluación humana detallada de tu producción escrita y oral, Ruta360 puede asignarte un tutor certificado.
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
